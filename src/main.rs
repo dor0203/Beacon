@@ -1,26 +1,17 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_files::Files;
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use serde::Serialize;
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world! :)")
-}
-
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
-
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
+#[derive(Serialize)]
+struct Message {
+    text: String,
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-        .service(hello)
-        .service(echo)
-        .route("/hey", web::get().to(manual_hello))
+        .service(Files::new("/", "./app/target/dx/app/debug/web/public").index_file("index.html"))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
