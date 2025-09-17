@@ -12,12 +12,31 @@
       in {
         devShells.${system}.default = pkgs.mkShell {
           buildInputs = [
+            pkgs.lld
+            pkgs.openssl
+            wasmpkgs.wasm-bindgen-cli_0_2_101
+            pkgs.pkg-config
+
             pkgs.cargo
             pkgs.rustc
             pkgs.dioxus-cli
-            pkgs.lld
-            wasmpkgs.wasm-bindgen-cli_0_2_101
+            pkgs.postgresql
           ];
+
+          shellHook = ''
+            source .env
+
+            if [ ! -d "$PGDATA" ]; then
+              initdb --pgdata=$PGDATA -c "unix_socket_directories=$PGDATA" > /dev/null
+            fi
+            pg_ctl --pgdata=$PGDATA -l "$PGDATA/logfile" start
+            trap "pg_ctl -D \"$PGDATA\" stop" EXIT
+
+            if ! psql -U $USER -lqt | cut -d \| -f 1 | grep -qw $DBNAME; then
+              echo "created catalog $DBNAME"
+              createdb -U $USER $DBNAME
+            fi
+          '';
         };
       };
 }
