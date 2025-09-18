@@ -19,6 +19,7 @@
 
             pkgs.cargo
             pkgs.rustc
+            pkgs.rust-analyzer
             pkgs.dioxus-cli
             pkgs.postgresql
           ];
@@ -36,6 +37,9 @@
               echo "created catalog $DBNAME"
               createdb -U $USER $DBNAME
             fi
+
+            alias build="cd ui && dx build && cd .."
+            alias serve="build && cargo run"
           '';
         };
       };
